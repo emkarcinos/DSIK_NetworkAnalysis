@@ -1,0 +1,104 @@
+\documentclass{article}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
+\title{Sieci komputerowe - analiza ruchu sieci}
+\author{Marcin Kostrzewski, 444409}
+\date{7 stycznia, 2020r}
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Opis projektu}
+Celem tego dokumentu jest przedstawienie wyników mojej analizy ruchu sieci w formie projektu. Analiza została
+wykonana na bazie plików pobranych z linków:
+\begin{itemize}
+    \item \url{http://marcing.faculty.wmi.amu.edu.pl/DSIK/0.tcpd}
+    \item \url{http://marcing.faculty.wmi.amu.edu.pl/DSIK/3.tcpd}
+\end{itemize}
+
+\section{Analiza zrzutu 0.tcpd}
+
+\subsection{Przebieg}
+Zrzut przedstawia dwa pakiety z usługi \textbf{DHCP}, dokładniej pakiet \textit{DHCPDISCOVER} i \textit{DHCPREQUEST}.
+Możemy wywnioskować zatem, że są to pakiety wysłane przez nowego połączonego z siecią LAN klienta,
+który chce skorzystać z tej usługi i otrzymać lokalny adres IP. Nie widzimy w ruchu pakietów odsyłanych przez
+serwer, lecz możemy wywnioskować, że zostały takowe wysłane; gdyby serwer nie odpowiedział, klient nie wysłałby drugiego pakietu.
+Nie jesteśmy w stanie stwierdzić, czy usługa rzeczywiście osiągnęła rezultat - klient otrzymał adres IP;
+nie został zarejestrowany ostatni pakiet z usługi DHCP - \textit{DHCPACK}, który wysyła serwer sygnalizując
+finalizacje usługi. Możemy jednak oszacować, że usługa ta zakończyła się pomyślnym przydzieleniem adresu IP 
+klientowi; żądany adres IP z pakietu DHCPDISCOVER pojawia się także w pakiecie DHCPREQUEST, co oznacza, że
+serwer odpowiedział pakietem \textit{DHCPOFFER}, w którym znajdował się żądany adres IP. Transakcja
+mogłaby zakończyć się niepowodzeniem jedynie w przypadku zerwania połączenia po wysłaniu ostatniego 
+przechwyconego pakietu, lub w przypadku awarii serwera DHCP, co jest mało prawdopodobne.
+
+\subsection{Adresy i protokoły}
+Usługa DHCP korzysta z protokołu o tej samej nazwie, zaten widzimy tutaj pakiety protokołu \textbf{DHCP}.
+Widzimy jedynie pakiety wysłane na adres rozgłoszeniowy (255.255.255.255). Adres klienta 
+nie jest nam znany; nie został mu jeszcze żaden przydzielony. W ramce Ethernet znajdziemy
+adres MAC karty sieciowej, z której wysłane zostały pakiety (\textbf{00:13:46:9a:bf:c4}),
+a w pakiecie DHCP znajdziemy pewne dwa adresy IP: żądane przez klienta IP \textbf{192.168.1.2}
+i adres IP routera, do którego przynależy klient: \textbf{192.168.1.1}(w pakiecie \textit{DHCPREQUEST}).
+
+\subsection{Systemy}
+Nie jesteśmy w stanie określić w żadnym stopniu danych o serwerze DHCP, znamy jedynie jego adres IP.
+O kliencie wiemy jedynie tyle, że korzystał z karty sieciowej D-Link (na podstawie adresu MAC).
+
+\subsection{Czas wykonania zrzutu}
+W ramce Ethernet możemy znaleźć datę wysłania pierwszego pakietu: \textbf{3 grudnia 2007r, godz. 15:05 CEST}.
+Długość zrzutu, czyli różnica między czasem wysłania pierwszego pakietu i drugiego pakietu to \textbf{33,70ms}.
+
+\subsection{Lokalizacja skanera}
+Skaner mógł zostać uruchomiony na dowolnym urządzeniu w sieci LAN, w której znajdował się klient, bo wszystkie takie urządzenia
+otrzymają pakiety wysłane na adres rozgłoszeniowy.
+
+\subsection{Konfiguracja LAN}
+\begin{itemize}
+    \item Adres routera: \textbf{192.168.1.1}
+    \item Adres MAC klienta: \textbf{00:13:46:9a:bf:c4}
+\end{itemize}
+Na routerze uruchuomiony jest serwer DHCP, który przydziela adresy IP z zakresu od \textbf{192.168.1.2}.
+
+\subsection{Odtworzenie zrzutu}
+Uruchamiamy program Wireshark z filtrem \textbf{ip.addr == 255.255.255.255}. Tworzymy nowe połączenie
+z dowolnego urządzenia do sieci LAN. Jeżeli chcemy, aby serwer DHCP przydzielił taki sam adres jak w 
+zrzucie, możemy wcześniej ręcznie przypisać mu adres 192.168.1.2. Jeżeli odłączymy urządzenie od sieci
+i połączymy je ponownie, jeżeli żadne urządzenie nie zajęło tego adresu, to urządzeniu prawdopodobnie zostanie
+przydzielony ten sam adres. Przykładowe odtworzenie zrzutu w załączniku \textbf{example1.pcap}
+
+\section{Analiza zrzutu 3.tcpd}
+
+\subsection{Przebieg}
+Podany zrzut przedstawia jakąś sesję \textbf{SSH}. Klient łączy się z samym sobą za pomocą SSH, autentykuje się i wykonuje
+jakieś działania korzystając z tego protokołu. Nie jesteśmy w stanie stwierdzic, jakie
+są wiadomości pakietów, ponieważ protokół SSH jest szyfrowany.
+
+\subsection{Adresy i protokoły}
+Wykorzsystywany jest protokół \textbf{SSHv2}. Klient znajduje się na tym samym komputerze co serwer,
+zatem klient łączy się sam ze sobą korzystając z adresu loopback (\textbf{127.0.0.1}). Serwer 
+SSH działa na porcie \textbf{22}, i z tym portem faktycznie klient łączy się, korzystając
+z losowego portu, w tym przypadku \textbf{47751}. Nieznamy jego adresu klienta/serwera.
+
+\subsection{Lokalizacja skanera}
+Skaner był uruchomiony na komputerze, który łączył się sam ze swoim serwerem SSH.
+
+\subsection{Czas wykonania zrzutu}
+Zrzut został wykonany \textbf{3 grudnia, 2007r, godz. 20:46 CEST}. Sesja trwała \textbf{2 sekundy}.
+
+\subsection{Odtworzenie zrzutu}
+Uruchamiamy program Wireshak nasłuchujący na urządzeniu \textit{loopback}. Na komputerze działa
+zarówno serwer jak i klient SSH. Za pomocą konsoli łączymy się z serwerem SSH na adresie
+127.0.0.1. Autentykujemy się i kończymy sesję. Przykładowy zrzut załączony w pliku \textbf{example2.pcap}.
+\end{document}
